@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+ <head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="initial-scale=1.0 ,user-scalable=no">
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCsJ8vVyCoHrvZuGxuhcwhlDEZtevVyoo8&libraries=places,geometry," ></script>
+   <script type="text/javascript">
+     var map;
+     var infowindow;
+     var request;
+     var service;
+     var service2;
+     var markers= [];
+      var timeSqr;
+      var directionsService;
+      var calval;
+      var speed=15;
+      var traf=false;
+      var trafficLayer;
+      var btn2=false;
+      var img;
+        var directionsDisplay=null;
+
+     function initialize() {
+       // The location of Uluru
+     timeSqr = {lat:40.75797709652609, lng:-73.98554921150208};
+       // The map, centered at Uluru
+       map = new google.maps.Map(
+           document.getElementById('map'), {zoom: 15, center: timeSqr});
+       marker = new google.maps.Marker({position:timeSqr, map: map,title: 'TIME SQUARE',label:'TS'});
+
+    //   var trafficLayer = new google.maps.TrafficLayer();
+      //trafficLayer.setMap(map);
+setMarkers(map);
+       }
+
+       function updateTraffic()
+       {
+
+         if(traf==false){
+         trafficLayer = new google.maps.TrafficLayer();
+         trafficLayer.setMap(map);
+          traf=true;
+          }
+         else if(traf==true)
+          {
+           trafficLayer.setMap(null);
+           traf=false;
+         }
+       }
+
+     function nrMcd()
+     {  makeMarkerNull();
+
+      document.getElementById("btn2").disable=false;
+
+       if(infowindow != null)
+    {   infowindow.close(map);  }
+
+      var request = {
+      location:  timeSqr,
+        query: 'McDonald'
+        };
+
+        infowindow = new google.maps.InfoWindow();
+        service = new google.maps.places.PlacesService(map);
+      service.textSearch(request, callback);
+
+
+     }
+
+     function callback(results, status)
+     {
+       if(status == google.maps.places.PlacesServiceStatus.OK)
+       {
+         for(var i=0; i<results.length; i++)
+         {
+           markers.push(createMarker(results[i]));
+         }
+         map.setZoom(13);
+       }
+     }
+
+
+     function setMarkers(map) {
+    image = {
+       url: 'm4.png',
+       // This marker is 20 pixels wide by 32 pixels high.
+       size: new google.maps.Size(30, 30),
+       // The origin for this image is (0, 0).
+       origin: new google.maps.Point(0, 0),
+       // The anchor for this image is the base of the flagpole at (0, 32).
+       anchor: new google.maps.Point(0, 0)
+     };
+   }
+     function createMarker(place)
+     {
+       var placelist=document.getElementById('places');
+       placelist.innerHTML="";
+
+      // var img ='C:/Users/DHAVAL/Desktop/cosaia/MAP/m3.png';
+
+        var placeLoc=place.geometry.location;
+         marker=new google.maps.Marker({
+         map: map,
+         position: placeLoc,
+         icon:image
+
+       });
+
+    var  marker3=marker;
+
+    calculatedistance(timeSqr.lat,timeSqr.lng,place.geometry.location.lat(),place.geometry.location.lng());
+
+
+    var time= calval/speed;
+    var hour=parseInt(time);
+    var min= ((time-hour)*60).toFixed(2);
+    var contentString = '<div id="content">'+
+      '<div id="siteNotice">'+
+      '</div>'+
+      '<h3 id="firstHeading" class="firstHeading">'+place.name+'</h3>'+
+      '<div id="bodyContent">'+
+      '<p> DISTANCE FROM TIMESQUARE : <b>'+calval+'(KM.) </b></p>'+
+      '<p> TIME TAKEN TO TRAVEL : <b> '+hour+' hour & '+min+' min </b></p>'+
+      '</div>'+
+      '</div>';
+
+
+    google.maps.event.addListener(marker3, 'click', function()
+   {
+     infowindow.setContent(contentString);
+     infowindow.open(map, marker3);
+
+      calcRoute(marker3);
+   });
+       return marker;
+     }
+
+     function calculatedistance(s1,s2,e1,e2)
+     {
+     var latlngA= new google.maps.LatLng(s1,s2); //Point A
+     var latlngB= new google.maps.LatLng(e1,e2); //Point B
+     //Calculate distance in meters between two points A and B.
+     var dist =google.maps.geometry.spherical.computeDistanceBetween (latlngA, latlngB);
+      calval=(dist/1000).toFixed(2);
+
+     }
+     function calcRoute(marker)
+     {       if (directionsDisplay != null) {
+        directionsDisplay.setMap(null);
+        directionsDisplay = null;
+    }
+
+        var drivingOptions;
+         var end = marker.getPosition();
+         var request = {
+                           origin: timeSqr,
+                           destination: end,
+                           drivingOptions: {
+                            departureTime: new Date(Date.now()), // for the time N milliseconds from now.
+                            trafficModel: "optimistic"
+                          },
+                           travelMode: 'WALKING',
+                          unitSystem: google.maps.UnitSystem.IMPERIAL
+                       };
+
+          directionsService=new google.maps.DirectionsService();
+          directionsDisplay = new google.maps.DirectionsRenderer();
+
+
+         directionsService.route(request, function(result, status)
+                 {
+                       if (status == 'OK')
+                       {
+                         directionsDisplay.setDirections(result);
+                       }
+                   }
+                 );
+
+
+        directionsDisplay.setMap(map);
+     }
+
+
+     function nearest()
+     {    document.getElementById("btn2").disable=true;
+
+       request={
+         location: timeSqr,
+          radius: 16093.44,
+          RankBy: google.maps.places.RankBy.DISTANCE,
+          query: 'McDonald'
+       };
+       infowindow = new google.maps.InfoWindow();
+        service = new google.maps.places.PlacesService(map);
+          service.textSearch(request, callback2);
+    }
+
+function makeMarkerNull()
+{
+  var i;
+
+    for(i=0;i< markers.length;i++)
+    {
+      markers[i].setMap(null);
+    }
+    markars=null;
+}
+
+    function callback2(results, status)
+    {
+     makeMarkerNull();
+      if(status == google.maps.places.PlacesServiceStatus.OK)
+      {
+      // var n=(results.length-1);
+        var r=results[0];
+       var marker1= createMarker(r);
+      map.setCenter(r.geometry.location);
+      map.setZoom(15);
+      infowindow.setContent("<h3> FAST FOOD RESTAURANT :</h3>"+r.name);//dist);
+      infowindow.open(map, marker1);
+      }
+    }
+     google.maps.event.addDomListener(window, 'load',initialize);
+
+   </script>
+<style media="screen">
+  #map
+ {
+
+   height: 500px;
+   width:100%;
+   margin: 0px;
+   padding: 0px;
+ }
+ #btn1,#btn2,#btn3{
+   height: 30px;  /* The height is 400 pixels */
+   width: 200px;
+   border-radius:20px;
+   background:blue;
+   color:white;
+ }
+</style>
+   <title></title>
+ </head>
+ <body>
+   <h3 >TIME SQUARE</h3>
+<button  id="btn1"  onclick="nrMcd()"> Near By McDonald's</button>
+
+<button  id="btn2"  onclick="nearest()"> Nearest McDonald's</button>
+<button  id="btn3"  onclick="updateTraffic()" > See traffic</button>
+
+<br>
+<br>
+   <div id="map">
+   </div>
+
+   <div id="places">
+
+   </div>
+ </body>
+</html>
